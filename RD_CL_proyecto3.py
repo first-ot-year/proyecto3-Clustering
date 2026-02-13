@@ -26,13 +26,9 @@ plt.style.use('seaborn-v0_8-darkgrid')
 sns.set_context("talk", font_scale=0.9)
 
 
-# %% [CELDA 2] CARGA Y PREPROCESAMIENTO
-# ---------------------------------------------------------
-
 path_training = r'C:\Universidad\Machine Learning\proyectoML\data\UJIndoorLoc\trainingData.csv'
 path_validation = r'C:\Universidad\Machine Learning\proyectoML\data\UJIndoorLoc\validationData.csv'
 
-# Cargar y unir
 df_train = pd.read_csv(path_training)
 try:
     df_val = pd.read_csv(path_validation)
@@ -53,8 +49,8 @@ X = X_raw.replace(100, -105)
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# %% [CELDA 3] COMPARATIVA DE REDUCCIÓN DE DIMENSIONALIDAD (TIEMPO vs VARIANZA)
-# ==========================================
+# %% COMPARATIVA DE REDUCCIÓN DE DIMENSIONALIDAD (TIEMPO vs VARIANZA)
+
 print("Reduccion de la dimensionalidad")
 # Vamos a comparar 3 métodos para bajar a 50 dimensiones
 
@@ -73,7 +69,7 @@ for name, model in methods:
     end_time = time.time()
 
     elapsed = end_time - start_time
-    reduced_data[name] = X_red  # Guardamos para usar luego
+    reduced_data[name] = X_red
 
     results_dim.append({
         "Método": name,
@@ -82,7 +78,7 @@ for name, model in methods:
     })
     print(f"   {name} completado en {elapsed:.4f}s")
 
-# Graficar Tiempos
+
 df_dim_results = pd.DataFrame(results_dim)
 plt.figure(figsize=(8, 5))
 sns.barplot(x="Método", y="Tiempo (s)", data=df_dim_results, palette="magma", hue="Método", legend=False)
@@ -90,17 +86,14 @@ plt.title("Eficiencia Computacional: Reducción de Dimensionalidad")
 plt.ylabel("Tiempo (segundos)")
 plt.show()
 
-# Guardamos el mejor (PCA) y el más rápido (Random) para pruebas
 X_pca_50 = reduced_data["PCA"]
 
-# Generamos t-SNE solo una vez para visualización (Mapa base)
+
 print("Generando mapa t-SNE 2D para visualizar resultados")
 tsne = TSNE(n_components=2, perplexity=40, init='pca', learning_rate='auto', n_jobs=-1)
 X_viz = tsne.fit_transform(X_scaled)
 
-# %% [CELDA 4] OPTIMIZACIÓN DE HIPERPARÁMETROS (GRÁFICOS CIENTÍFICOS)
-# ==========================================
-# NO adivinamos los parámetros, los calculamos.
+# %%  OPTIMIZACIÓN DE HIPERPARÁMETROS
 
 fig, ax = plt.subplots(1, 2, figsize=(16, 6))
 
@@ -140,8 +133,8 @@ ax[1].legend()
 
 plt.show()
 
-# %% [CELDA 5] EJECUCIÓN Y COMPARACIÓN DE MODELOS (MODO POTENTE)
-# ==========================================
+# %%  EJECUCIÓN Y COMPARACIÓN DE MODELOS
+
 print("--- ENTRENAMIENTO Y EVALUACIÓN (FULL DATA) ---")
 
 models_to_test = [
@@ -172,7 +165,7 @@ for name, model, data in models_to_test:
 
     # --- CAMBIO AQUÍ: SILHOUETTE COMPLETO ---
     if len(set(labels)) > 1:
-        print(f"   Calculando Silhouette para {name} (usando todos los datos)...")
+        print(f"   Calculando Silhouette para {name} (usando todos los datos)")
         # Al borrar 'sample_size', usa los 20,000 datos exactos.
         sil = silhouette_score(X_pca_50, labels)
     else:
@@ -187,7 +180,7 @@ for name, model, data in models_to_test:
     })
 
 df_results = pd.DataFrame(results_model)
-print("\n=== TABLA FINAL (Métricas Exactas) ===")
+print("\TABLA FINAL (Métricas Exactas) ")
 print(df_results)
 
 # %% VISUALIZACIÓN DE RESULTADOS
@@ -225,11 +218,9 @@ axes[2].set_title("Tiempo de Ejecución")
 
 plt.show()
 
-# %% [CELDA 7] MATRIZ DE CONFUSIÓN (K-MEANS)
-# ==========================================
-# Vamos a ver exáctamente qué edificios confundió K-Means
+# %%  MATRIZ DE CONFUSIÓN (K-MEANS)
 # Como los clusters son arbitrarios (0,1,2), a veces el cluster 0 es el edificio 2.
-# Hacemos una tabla cruzada simple.
+
 
 best_labels = labels_dict["K-Means"]  # O el que haya salido mejor
 conf_mat = pd.crosstab(y_true, best_labels, rownames=['Edificio REAL'], colnames=['Cluster PREDICHO'])
